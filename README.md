@@ -28,7 +28,7 @@ $ cd ~
 $ touch .neschguicfg
 ```
 
-Here's a default config file: 
+Here's an example file: 
 
 ```
 palette:

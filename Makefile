@@ -1,5 +1,5 @@
 CC = gcc
-EXEC ?= main
+EXEC ?= neschgui
 
 CCFLAGS := -Wall -Wextra -O2
 
@@ -12,5 +12,8 @@ SOURCE := $(wildcard $(SOURCE_DIRECTORY)/*.c)
 $(EXEC): $(SOURCE)
 	$(CC) $(SOURCE) $(CCFLAGS) $(LIBFLAGS) -o $(EXEC)
 
+install:
+	cp neschgui /usr/bin/neschgui
+
 clean:
-	rm main
+	rm neschgui

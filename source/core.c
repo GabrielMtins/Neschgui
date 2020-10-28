@@ -28,9 +28,15 @@ void core_init(int argc, char** argv){
         printf("No arguments!\n");
         exit(-1);
     }
+    SDL_Init(SDL_INIT_VIDEO);
     main_editor = editor_create();
     editor_loadRom(main_editor, argv[1]);
-    SDL_Init(SDL_INIT_VIDEO);
+    if(main_editor->main_rom == NULL){
+        printf("Failed to read rom\n");
+        editor_destroy(main_editor);
+        SDL_Quit();
+        exit(-1);
+    }
     window = SDL_CreateWindow("neschgui", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_RESIZABLE);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     SDL_RenderSetLogicalSize(renderer, WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -64,6 +70,7 @@ void core_loop(){
 void core_quit(){
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
+    editor_destroy(main_editor);
     SDL_Quit();
 }
 

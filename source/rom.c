@@ -112,8 +112,8 @@ void rom_gb_putPixel(rom* self, size_t offset, size_t x, size_t y, uint8_t color
     if(self == NULL) return;
     if(offset*16 > self->size-16) return;
     uint8_t j = 1<<x;
-    uint8_t* color_arg1 = self->rom_buffer+y*2+offset*16;
-    uint8_t* color_arg2 = self->rom_buffer+y*2+offset*16+1;
+    uint8_t* color_arg1 = self->rom_buffer+y*2+offset*16+2;
+    uint8_t* color_arg2 = self->rom_buffer+y*2+offset*16+1+2;
     {
         int new_j = 255-j;
         *color_arg1 = (*color_arg1)&new_j;

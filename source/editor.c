@@ -27,6 +27,31 @@
 int NUM_COLS = (SPRITE_SURFACE_WIDTH/8);
 int NUM_LINES = (SPRITE_SURFACE_HEIGHT/8);
 
+static void editor_loadDefaultConfig(editor* self){
+    char filename[256] = "";
+    strcpy(filename, getenv("HOME"));
+    strcat(filename, "/.neschguicfg");
+    FILE* file = fopen(filename, "r");
+    if(file == NULL) return;
+    char current_table[16] = "";
+    while(fscanf(file, "%s", current_table) == 1){
+        if(!strcmp(current_table, "default")){
+            break;
+        }
+        if(!strcmp(current_table, "palette:")){
+            for(int i = 0; i < 4; i++){
+                int r, g, b;
+                fscanf(file, "%i %i %i", &r, &g, &b);
+                if(r < 256 && g < 256 && b < 256){
+                    SDL_Color new_color = {r, g, b, 255};
+                    self->palette[i] = new_color;
+                }
+            }
+        }
+    }
+    fclose(file);
+}
+
 editor* editor_create(){
     editor* self = malloc(sizeof(editor));
     self->offset_tiles = 0;
@@ -49,6 +74,7 @@ editor* editor_create(){
         SDL_Color new_color = {150, 120, 0, 255};
         self->palette[3] = new_color;
     }
+    editor_loadDefaultConfig(self);
     self->sheet_widget = widget_create(
         WINDOW_HEIGHT/32, 0, WINDOW_HEIGHT, WINDOW_HEIGHT
     );

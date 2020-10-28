@@ -26,6 +26,12 @@ rom* rom_load(const char* filename){
     FILE* file = fopen(filename, "rb");
     if(file == NULL) return NULL;
     rom* self = malloc(sizeof(rom));
+    if(!strcmp(filename+strlen(filename)-4, ".nes")){
+        self->type = NES_ROM;
+    }
+    if(!strcmp(filename+strlen(filename)-3, ".gb")){
+        self->type = GB_ROM;
+    }
     strcpy(self->rom_name, filename);
     // get the size of the rom
     fseek(file, 0, SEEK_END);
@@ -37,15 +43,14 @@ rom* rom_load(const char* filename){
     return self;
 }
 
-/*
-    we need to arguments for the color
-    for example if we have the numbers:
-    1000001 and 11110000, the color of the byte will be:
-    32220001
-    so we use bitshifting and bitwise ands to do this operation
-*/
-
-uint8_t rom_getPixel(const rom* self, size_t offset, size_t x, size_t y){
+static uint8_t rom_nes_getPixel(const rom* self, size_t offset, size_t x, size_t y){
+    /*
+        we need to arguments for the color
+        for example if we have the numbers:
+        1000001 and 11110000, the color of the byte will be:
+        32220001
+        so we use bitshifting and bitwise ands to do this operation
+    */
     if(self == NULL) return 0;
     if(offset*16 > self->size-16) return 0;
     uint8_t j = 1<<x;
@@ -58,7 +63,37 @@ uint8_t rom_getPixel(const rom* self, size_t offset, size_t x, size_t y){
     return 0;
 }
 
-void rom_putPixel(rom* self, size_t offset, size_t x, size_t y, uint8_t color){
+static uint8_t rom_gb_getPixel(const rom* self, size_t offset, size_t x, size_t y){
+    if(self == NULL) return 0;
+    if(offset*16 > self->size-16) return 0;
+    uint8_t j = 1<<x;
+    // sprites on gameboy are stored in two consecutive lines
+    // example:
+    // 0011000001
+    // 1100110001
+    // we get: 2211220003
+    int color_arg1 = j&self->rom_buffer[0+y*2+offset*16];
+    int color_arg2 = j&self->rom_buffer[1+y*2+offset*16];
+    if(color_arg1&&color_arg2) return 3;
+    if(color_arg1) return 2;
+    if(color_arg2) return 1;
+    return 0;
+}
+
+uint8_t rom_getPixel(const rom* self, size_t offset, size_t x, size_t y){
+    if(self == NULL) return 0;
+    switch(self->type){
+        case NES_ROM:
+        return rom_nes_getPixel(self, offset, x, y);
+        break;
+        case GB_ROM:
+        return rom_gb_getPixel(self, offset, x, y);
+        break;
+    }
+    return 0;
+}
+
+void rom_nes_putPixel(rom* self, size_t offset, size_t x, size_t y, uint8_t color){
     if(self == NULL) return;
     if(offset*16 > self->size-16) return;
     uint8_t j = 1<<x;
@@ -71,6 +106,33 @@ void rom_putPixel(rom* self, size_t offset, size_t x, size_t y, uint8_t color){
     }
     if((color&1) == 1) *color_arg2 = (*color_arg2)|j;
     if((color&2) == 2) *color_arg1 = (*color_arg1)|j;
+}
+
+void rom_gb_putPixel(rom* self, size_t offset, size_t x, size_t y, uint8_t color){
+    if(self == NULL) return;
+    if(offset*16 > self->size-16) return;
+    uint8_t j = 1<<x;
+    uint8_t* color_arg1 = self->rom_buffer+y*2+offset*16;
+    uint8_t* color_arg2 = self->rom_buffer+y*2+offset*16+1;
+    {
+        int new_j = 255-j;
+        *color_arg1 = (*color_arg1)&new_j;
+        *color_arg2 = (*color_arg2)&new_j;
+    }
+    if((color&1) == 1) *color_arg2 = (*color_arg2)|j;
+    if((color&2) == 2) *color_arg1 = (*color_arg1)|j;
+}
+
+void rom_putPixel(rom* self, size_t offset, size_t x, size_t y, uint8_t color){
+    if(self == NULL) return;
+    switch(self->type){
+        case NES_ROM:
+        rom_nes_putPixel(self, offset, x, y, color);
+        break;
+        case GB_ROM:
+        rom_gb_putPixel(self, offset, x, y, color);
+        break;
+    }
 }
 
 void rom_save(const rom* self){

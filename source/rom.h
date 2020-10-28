@@ -20,6 +20,9 @@
     along with Neschgui.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#define NES_ROM 0
+#define GB_ROM 1
+
 #include <stdint.h>
 #include <stddef.h>
 
@@ -27,6 +30,7 @@ typedef struct{
     uint8_t* rom_buffer;
     char rom_name[64];
     size_t size;
+    uint8_t type;
 } rom;
 
 rom* rom_load(const char* filename);

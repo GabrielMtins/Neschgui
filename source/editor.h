@@ -52,4 +52,6 @@ void editor_drawTilesetToSurface(editor* self);
 
 void editor_render(const editor* self);
 
+void editor_destroy(editor* self);
+
 #endif

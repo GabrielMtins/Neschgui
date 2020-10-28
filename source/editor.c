@@ -263,5 +263,17 @@ void editor_render(const editor* self){
     editor_drawLines(self);
     editor_drawSliders(self);
     SDL_DestroyTexture(sheet_texture);
+}
 
+void editor_destroy(editor* self){
+    widget_destroy(self->draw_widget);
+    widget_destroy(self->sheet_widget);
+    widget_destroy(self->slider_r);
+    widget_destroy(self->slider_g);
+    widget_destroy(self->slider_b);
+    widget_destroy(self->slider_sheet);
+    widget_destroy(self->palette_widget);
+    SDL_FreeSurface(self->sprite_surface);
+    editor_freeRom(self);
+    free(self);
 }

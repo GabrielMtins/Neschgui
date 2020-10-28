@@ -37,6 +37,14 @@ rom* rom_load(const char* filename){
     return self;
 }
 
+/*
+    we need to arguments for the color
+    for example if we have the numbers:
+    1000001 and 11110000, the color of the byte will be:
+    32220001
+    so we use bitshifting and bitwise ands to do this operation
+*/
+
 uint8_t rom_getPixel(const rom* self, size_t offset, size_t x, size_t y){
     if(self == NULL) return 0;
     if(offset*16 > self->size-16) return 0;

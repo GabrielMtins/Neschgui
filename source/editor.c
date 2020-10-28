@@ -38,15 +38,15 @@ editor* editor_create(){
         self->palette[0] = new_color;
     }
     {
-        SDL_Color new_color = {0, 120, 255, 255};
+        SDL_Color new_color = {255, 200, 150, 255};
         self->palette[1] = new_color;
     }
     {
-        SDL_Color new_color = {60, 20, 200, 255};
+        SDL_Color new_color = {255, 0, 0, 255};
         self->palette[2] = new_color;
     }
     {
-        SDL_Color new_color = {30, 255, 200, 255};
+        SDL_Color new_color = {150, 120, 0, 255};
         self->palette[3] = new_color;
     }
     self->sheet_widget = widget_create(

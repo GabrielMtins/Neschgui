@@ -84,6 +84,13 @@ editor* editor_create(){
 
 static void editor_inputMouse(editor* self, int x, int y){
     if(widget_isMouseInsideWidget(self->sheet_widget, x, y)){
+        /*
+            the sheet is composed by NUM_COLS*NUM_LINES of sprites
+            to get the pixel of the current sprite, we multiply the
+            relative position of the widget by NUM_COLS and by NUM_LINES
+            And then we get the current srpite
+            to get the size in pixels, we multiply it by 8 (each sprite is 8x8)
+        */
         double new_x = 0, new_y = 0;
         widget_getMouseRelativeToWidget(self->sheet_widget, x, y, &new_x, &new_y);
         new_x*=NUM_COLS;
@@ -96,6 +103,8 @@ static void editor_inputMouse(editor* self, int x, int y){
     if(widget_isMouseInsideWidget(self->draw_widget, x, y)){
         double new_x = 0, new_y = 0;
         widget_getMouseRelativeToWidget(self->draw_widget, x, y, &new_x, &new_y);
+        // we get the relative mouse position to the widget and then
+        // multiply by 8 to get the current pixel of the draw_widget
         int i = new_x*8;
         int j = new_y*8;
         size_t offset = self->current_sprite_x/8+(self->current_sprite_y/8+self->offset_tiles)*NUM_COLS;
@@ -104,10 +113,13 @@ static void editor_inputMouse(editor* self, int x, int y){
     if(widget_isMouseInsideWidget(self->palette_widget, x, y)){
         double new_x = 0;
         widget_getMouseRelativeToWidget(self->palette_widget, x, y, &new_x, NULL);
+        // multiply by 4 to get one of the 4 colors available
         new_x = new_x*4;
         self->current_color = new_x;
     }
     if(widget_isMouseInsideWidget(self->slider_r, x, y)){
+        // on all sliders, we just multiply the color by the relative position
+        // of the x value
         double new_x = 0;
         widget_getMouseRelativeToWidget(self->slider_r, x, y, &new_x, NULL);
         self->palette[self->current_color].r = new_x*255;
@@ -128,6 +140,9 @@ static void editor_inputMouse(editor* self, int x, int y){
         int max_offset = self->main_rom->size/NUM_COLS+1;
         new_y *= max_offset;
         new_y = (int)new_y/NUM_COLS;
+        // to create a new offset, we get the original size and define a max offset
+        // after that we multiply the relative position of mouse_y and get the correct
+        // offset
         self->offset_tiles = (int)(new_y);
     }
 }
@@ -170,9 +185,9 @@ void editor_input(editor* self, SDL_Event* event){
     }
 
     if(self->main_rom != NULL && self->offset_tiles >= self->main_rom->size/(NUM_COLS*NUM_COLS)-4){
+        // we cant pass the max size of offset
         self->offset_tiles = self->main_rom->size/(NUM_COLS*NUM_COLS)-4;
     }
-
     int x, y;
     if(SDL_GetMouseState(&x, &y)&SDL_BUTTON(SDL_BUTTON_LEFT)){
         getMousePositionRelative(&x, &y);
@@ -212,7 +227,7 @@ void editor_drawTilesetToSurface(editor* self){
 
 static void editor_drawLines(const editor* self){
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    for(int i = 0; i < NUM_COLS+1; i++){
+    for(int i = 0; i < NUM_COLS+1; i++){ // these are the lines that divide the sprite sheet
         int tile_size = WINDOW_HEIGHT/NUM_COLS;
         SDL_RenderDrawLine(renderer, i*tile_size+self->sheet_widget->x, 0, i*tile_size+self->sheet_widget->x, WINDOW_HEIGHT);
         SDL_RenderDrawLine(renderer, self->sheet_widget->x, i*tile_size, WINDOW_HEIGHT+self->sheet_widget->x, i*tile_size);

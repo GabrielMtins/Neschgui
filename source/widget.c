@@ -44,6 +44,7 @@ void getMousePositionRelative(int* x, int* y){
     int x_mouse = *x;
     int y_mouse = *y;
     if(width*9 != height*16){ // check if the screen is 16:9
+        // if its not, we calculate the value of the border
         int border;
         int new_width = height*16/9;
         border = new_width-width;

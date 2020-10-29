@@ -163,13 +163,37 @@ static void editor_inputMouse(editor* self, int x, int y){
     if(widget_isMouseInsideWidget(self->slider_sheet, x, y)){
         double new_y = 0;
         widget_getMouseRelativeToWidget(self->slider_sheet, x, y, NULL, &new_y);
-        int max_offset = self->main_rom->size/16+1; // each sprite takes 16 bytes
-        new_y *= max_offset;
-        new_y = (int)new_y/NUM_COLS;
+        int max_offset = self->main_rom->size/16/NUM_LINES; // each sprite takes 16 bytes
+        new_y = max_offset*new_y;
+        new_y = (int)new_y;
         // to create a new offset, we get the original size and define a max offset
         // after that we multiply the relative position of mouse_y and get the correct
         // offset
         self->offset_tiles = (int)(new_y);
+    }
+}
+
+static void editor_inputHandleCtrlC(editor* self){
+    char str_to_copy[65];
+    str_to_copy[64] = '\0';
+    // we copy the colors of the current tile to a string and set as the clipboard
+    for(int i = 0; i < 8; i++){
+        for(int j = 0; j < 8; j++){
+            size_t offset = self->current_sprite_x/8+(self->current_sprite_y/8+self->offset_tiles)*NUM_COLS;
+            str_to_copy[j*8+i] = 48+rom_getPixel(self->main_rom, offset, 7-i, j);
+        }
+    }
+    SDL_SetClipboardText(str_to_copy);
+}
+
+static void editor_inputHandleCtrlV(editor* self){
+    char str_to_paste[65] = "";
+    strcpy(str_to_paste, SDL_GetClipboardText());
+    for(int i = 0; i < 8; i++){
+        for(int j = 0; j < 8; j++){
+            size_t offset = self->current_sprite_x/8+(self->current_sprite_y/8+self->offset_tiles)*NUM_COLS;
+            rom_putPixel(self->main_rom, offset, 7-i, j, str_to_paste[j*8+i]-48);
+        }
     }
 }
 
@@ -199,6 +223,12 @@ void editor_input(editor* self, SDL_Event* event){
             case SDLK_4:
             self->current_color = 3;
             break;
+            case SDLK_c:
+            if(SDL_GetModState()&KMOD_CTRL) editor_inputHandleCtrlC(self);
+            break;
+            case SDLK_v:
+            if(SDL_GetModState()&KMOD_CTRL) editor_inputHandleCtrlV(self);
+            break;
         }
     }
     if(event->type == SDL_MOUSEWHEEL){
@@ -209,7 +239,6 @@ void editor_input(editor* self, SDL_Event* event){
             self->offset_tiles+=3;
         }
     }
-
     if(self->main_rom != NULL && self->offset_tiles >= self->main_rom->size/(16*NUM_COLS)-4){
         // we cant pass the max size of offset
         self->offset_tiles = self->main_rom->size/(16*NUM_COLS)-4;

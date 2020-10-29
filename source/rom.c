@@ -32,6 +32,9 @@ rom* rom_load(const char* filename){
     if(!strcmp(filename+strlen(filename)-3, ".gb")){
         self->type = GB_ROM;
     }
+    if(!strcmp(filename+strlen(filename)-4, ".gbc")){
+        self->type = GB_ROM;
+    }
     strcpy(self->rom_name, filename);
     // get the size of the rom
     fseek(file, 0, SEEK_END);

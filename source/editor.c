@@ -163,7 +163,7 @@ static void editor_inputMouse(editor* self, int x, int y){
     if(widget_isMouseInsideWidget(self->slider_sheet, x, y)){
         double new_y = 0;
         widget_getMouseRelativeToWidget(self->slider_sheet, x, y, NULL, &new_y);
-        int max_offset = self->main_rom->size/NUM_COLS+1;
+        int max_offset = self->main_rom->size/16+1; // each sprite takes 16 bytes
         new_y *= max_offset;
         new_y = (int)new_y/NUM_COLS;
         // to create a new offset, we get the original size and define a max offset
@@ -210,9 +210,9 @@ void editor_input(editor* self, SDL_Event* event){
         }
     }
 
-    if(self->main_rom != NULL && self->offset_tiles >= self->main_rom->size/(NUM_COLS*NUM_COLS)-4){
+    if(self->main_rom != NULL && self->offset_tiles >= self->main_rom->size/(16*NUM_COLS)-4){
         // we cant pass the max size of offset
-        self->offset_tiles = self->main_rom->size/(NUM_COLS*NUM_COLS)-4;
+        self->offset_tiles = self->main_rom->size/(16*NUM_COLS)-4;
     }
     int x, y;
     if(SDL_GetMouseState(&x, &y)&SDL_BUTTON(SDL_BUTTON_LEFT)){
@@ -294,7 +294,7 @@ void editor_render(const editor* self){
         SDL_RenderCopy(renderer, sheet_texture, &src, &dst);
     }
     { // draw color palette
-        SDL_Rect rect_color = {self->palette_widget->x, self->palette_widget->y, WINDOW_HEIGHT/16, WINDOW_HEIGHT/16};
+        SDL_Rect rect_color = {self->palette_widget->x, self->palette_widget->y, self->palette_widget->w/4, self->palette_widget->h};
         for(int i = 0; i < 4; i++){
             SDL_SetRenderDrawColor(renderer, self->palette[i].r, self->palette[i].g, self->palette[i].b, 255);
             SDL_RenderFillRect(renderer, &rect_color);

@@ -69,12 +69,7 @@ static uint8_t rom_nes_getPixel(const rom* self, size_t offset, size_t x, size_t
 static uint8_t rom_gb_getPixel(const rom* self, size_t offset, size_t x, size_t y){
     if(self == NULL) return 0;
     if(offset*16 > self->size-16) return 0;
-    uint8_t j = 1<<x;
-    // sprites on gameboy are stored in two consecutive lines
-    // example:
-    // 0011000001
-    // 1100110001
-    // we get: 2211220003
+    int j = 1<<x;
     int color_arg1 = j&self->rom_buffer[0+y*2+offset*16];
     int color_arg2 = j&self->rom_buffer[1+y*2+offset*16];
     if(color_arg1&&color_arg2) return 3;

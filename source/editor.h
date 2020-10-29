@@ -23,9 +23,11 @@
 #include "global.h"
 #include "rom.h"
 #include "widget.h"
+#include "undo.h"
 
 typedef struct{
     rom* main_rom;
+    undo_stack main_stack;
     size_t offset_tiles;
     size_t current_sprite_x, current_sprite_y;
     uint8_t current_color;

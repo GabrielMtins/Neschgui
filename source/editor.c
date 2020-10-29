@@ -105,6 +105,7 @@ editor* editor_create(){
         (WINDOW_WIDTH-WINDOW_HEIGHT)/2,
         WINDOW_HEIGHT/32
     );
+    self->main_stack.top = 0;
     return self;
 }
 
@@ -134,6 +135,7 @@ static void editor_inputMouse(editor* self, int x, int y){
         int i = new_x*8;
         int j = new_y*8;
         size_t offset = self->current_sprite_x/8+(self->current_sprite_y/8+self->offset_tiles)*NUM_COLS;
+        undo_stack_push(&self->main_stack, self->main_rom, offset, 7-i, j, UNDO_TYPE_PUT_PIXEL); // save action
         rom_putPixel(self->main_rom, offset, 7-i, j, self->current_color);
     }
     if(widget_isMouseInsideWidget(self->palette_widget, x, y)){
@@ -192,6 +194,7 @@ static void editor_inputHandleCtrlV(editor* self){
     for(int i = 0; i < 8; i++){
         for(int j = 0; j < 8; j++){
             size_t offset = self->current_sprite_x/8+(self->current_sprite_y/8+self->offset_tiles)*NUM_COLS;
+            undo_stack_push(&self->main_stack, self->main_rom, offset, 7-i, j, UNDO_TYPE_PASTE); // save action
             rom_putPixel(self->main_rom, offset, 7-i, j, str_to_paste[j*8+i]-48);
         }
     }
@@ -228,6 +231,9 @@ void editor_input(editor* self, SDL_Event* event){
             break;
             case SDLK_v:
             if(SDL_GetModState()&KMOD_CTRL) editor_inputHandleCtrlV(self);
+            break;
+            case SDLK_z: // handle ctrl + z
+            if(SDL_GetModState()&KMOD_CTRL) undo_stack_pop(&self->main_stack, self->main_rom);
             break;
         }
     }

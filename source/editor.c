@@ -194,11 +194,13 @@ static void editor_inputHandleCtrlV(editor* self){
     for(int i = 0; i < 8; i++){
         for(int j = 0; j < 8; j++){
             size_t offset = self->current_sprite_x/8+(self->current_sprite_y/8+self->offset_tiles)*NUM_COLS;
-            undo_stack_push(&self->main_stack, self->main_rom, offset, 7-i, j, UNDO_TYPE_PASTE); // save action
+            if(i == 0 && j == 0){
+                undo_stack_push(&self->main_stack, self->main_rom, offset, 7-i, j, UNDO_TYPE_PUT_PIXEL); // save action
+            }
+            else undo_stack_push(&self->main_stack, self->main_rom, offset, 7-i, j, UNDO_TYPE_PASTE); // save action
             rom_putPixel(self->main_rom, offset, 7-i, j, str_to_paste[j*8+i]-48);
         }
     }
-    undo_stack_push(&self->main_stack, self->main_rom, 0, 0, 0, UNDO_TYPE_PUT_PIXEL);
 }
 
 void editor_input(editor* self, SDL_Event* event){

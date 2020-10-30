@@ -22,3 +22,4 @@
 
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
+char window_title[256] = "neschgui - ";

@@ -38,7 +38,8 @@ void core_init(int argc, char** argv){
         SDL_Quit();
         exit(-1);
     }
-    window = SDL_CreateWindow("neschgui", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_RESIZABLE);
+    strcat(window_title, argv[1]);
+    window = SDL_CreateWindow(window_title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_RESIZABLE);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     SDL_RenderSetLogicalSize(renderer, WINDOW_WIDTH, WINDOW_HEIGHT);
     SDL_ShowSimpleMessageBox(0, "About", "Neschgui  Copyright (C) 2020  Gabriel Martins\n \

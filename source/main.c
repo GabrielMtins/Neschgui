@@ -3,7 +3,7 @@
 
 /*
     Copyright (C) 2020  Gabriel Martins
-    
+
     This file is part of Neschgui.
 
     Neschgui is free software: you can redistribute it and/or modify
@@ -17,7 +17,8 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Neschgui.  If not, see <https://www.gnu.org/licenses/>.
+    along with Neschgui.  If not, see <https://www.gnu.org/licenses/>
+    Contact: gabrielmartinsthe@gmail.com
 */
 
 int main(int argc, char** argv){

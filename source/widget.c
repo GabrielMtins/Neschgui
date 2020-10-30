@@ -20,6 +20,7 @@
 
     You should have received a copy of the GNU General Public License
     along with Neschgui.  If not, see <https://www.gnu.org/licenses/>.
+    Contact: gabrielmartinsthe@gmail.com
 */
 
 widget* widget_create(int x, int y, int w, int h){

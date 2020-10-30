@@ -9,6 +9,14 @@ $ make
 $ sudo make install
 ```
 
+## Current modes
+
+```
+2bpp - NES (complete)
+2bpp - GB/GBC (work in progress)
+4bpp - SMS/Game Gear (work in progress)
+```
+
 ## How to use  
 
 To open a file, type:   

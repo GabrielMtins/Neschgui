@@ -28,13 +28,25 @@ rom* rom_load(const char* filename){
     rom* self = malloc(sizeof(rom));
     if(!strcmp(filename+strlen(filename)-4, ".nes")){
         self->type = NES_ROM;
+        self->bytes_per_sprite = 16;
     }
     if(!strcmp(filename+strlen(filename)-3, ".gb")){
         self->type = GB_ROM;
+        self->bytes_per_sprite = 16;
     }
     if(!strcmp(filename+strlen(filename)-4, ".gbc")){
         self->type = GB_ROM;
+        self->bytes_per_sprite = 16;
     }
+    if(!strcmp(filename+strlen(filename)-4, ".sms")){
+        self->type = SMS_ROM;
+        self->bytes_per_sprite = 32;
+    }
+    if(!strcmp(filename+strlen(filename)-3, ".gg")){
+        self->type = SMS_ROM;
+        self->bytes_per_sprite = 32;
+    }
+    self->num_of_colors = self->bytes_per_sprite*self->bytes_per_sprite/64;
     strcpy(self->rom_name, filename);
     // get the size of the rom
     fseek(file, 0, SEEK_END);
@@ -78,6 +90,22 @@ static uint8_t rom_gb_getPixel(const rom* self, size_t offset, size_t x, size_t 
     return 0;
 }
 
+static uint8_t rom_sms_getPixel(const rom* self, size_t offset, size_t x, size_t y){
+    if(self == NULL) return 0;
+    if(offset*32 > self->size-32) return 0;
+    int j = 1<<x;
+    int color_arg1 = j&self->rom_buffer[0+y*4+offset*32];
+    int color_arg2 = j&self->rom_buffer[1+y*4+offset*32];
+    int color_arg3 = j&self->rom_buffer[2+y*4+offset*32];
+    int color_arg4 = j&self->rom_buffer[3+y*4+offset*32];
+    if(color_arg1) color_arg1 = 1;
+    if(color_arg2) color_arg2 = 2;
+    if(color_arg3) color_arg3 = 4;
+    if(color_arg4) color_arg4 = 8;
+    int return_color = color_arg1+color_arg2+color_arg3+color_arg4;
+    return (uint8_t) return_color;
+}
+
 uint8_t rom_getPixel(const rom* self, size_t offset, size_t x, size_t y){
     if(self == NULL) return 0;
     switch(self->type){
@@ -87,11 +115,14 @@ uint8_t rom_getPixel(const rom* self, size_t offset, size_t x, size_t y){
         case GB_ROM:
         return rom_gb_getPixel(self, offset, x, y);
         break;
+        case SMS_ROM:
+        return rom_sms_getPixel(self, offset, x, y);
+        break;
     }
     return 0;
 }
 
-void rom_nes_putPixel(rom* self, size_t offset, size_t x, size_t y, uint8_t color){
+static void rom_nes_putPixel(rom* self, size_t offset, size_t x, size_t y, uint8_t color){
     if(self == NULL) return;
     if(offset*16 > self->size-16) return;
     uint8_t j = 1<<x;
@@ -106,7 +137,7 @@ void rom_nes_putPixel(rom* self, size_t offset, size_t x, size_t y, uint8_t colo
     if((color&2) == 2) *color_arg1 = (*color_arg1)|j;
 }
 
-void rom_gb_putPixel(rom* self, size_t offset, size_t x, size_t y, uint8_t color){
+static void rom_gb_putPixel(rom* self, size_t offset, size_t x, size_t y, uint8_t color){
     if(self == NULL) return;
     if(offset*16 > self->size-16) return;
     uint8_t j = 1<<x;
@@ -121,6 +152,27 @@ void rom_gb_putPixel(rom* self, size_t offset, size_t x, size_t y, uint8_t color
     if((color&2) == 2) *color_arg1 = (*color_arg1)|j;
 }
 
+static void rom_sms_putPixel(rom* self, size_t offset, size_t x, size_t y, uint8_t color){
+    if(self == NULL) return;
+    if(offset*32 > self->size-32) return;
+    uint8_t j = 1<<x;
+    uint8_t* color_arg1 = self->rom_buffer+y*4+offset*32;
+    uint8_t* color_arg2 = self->rom_buffer+y*4+offset*32+1;
+    uint8_t* color_arg3 = self->rom_buffer+y*4+offset*32+2;
+    uint8_t* color_arg4 = self->rom_buffer+y*4+offset*32+3;
+    {
+        int new_j = 255-j;
+        *color_arg1 = (*color_arg1)&new_j;
+        *color_arg2 = (*color_arg2)&new_j;
+        *color_arg3 = (*color_arg3)&new_j;
+        *color_arg4 = (*color_arg4)&new_j;
+    }
+    if((color&1) == 1) *color_arg1 = (*color_arg1)|j;
+    if((color&2) == 2) *color_arg2 = (*color_arg2)|j;
+    if((color&4) == 4) *color_arg3 = (*color_arg3)|j;
+    if((color&8) == 8) *color_arg4 = (*color_arg4)|j;
+}
+
 void rom_putPixel(rom* self, size_t offset, size_t x, size_t y, uint8_t color){
     if(self == NULL) return;
     switch(self->type){
@@ -129,6 +181,9 @@ void rom_putPixel(rom* self, size_t offset, size_t x, size_t y, uint8_t color){
         break;
         case GB_ROM:
         rom_gb_putPixel(self, offset, x, y, color);
+        break;
+        case SMS_ROM:
+        rom_sms_putPixel(self, offset, x, y, color);
         break;
     }
 }

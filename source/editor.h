@@ -31,7 +31,7 @@ typedef struct{
     size_t offset_tiles;
     size_t current_sprite_x, current_sprite_y;
     uint8_t current_color;
-    SDL_Color palette[4];
+    SDL_Color palette[16];
     SDL_Surface* sprite_surface;
     widget* draw_widget;
     widget* sheet_widget;

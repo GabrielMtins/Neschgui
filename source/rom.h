@@ -22,6 +22,7 @@
 
 #define NES_ROM 0
 #define GB_ROM 1
+#define SMS_ROM 2
 
 #include <stdint.h>
 #include <stddef.h>
@@ -31,6 +32,8 @@ typedef struct{
     char rom_name[64];
     size_t size;
     uint8_t type;
+    uint8_t bytes_per_sprite;
+    uint8_t num_of_colors;
 } rom;
 
 rom* rom_load(const char* filename);

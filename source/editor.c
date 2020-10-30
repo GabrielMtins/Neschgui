@@ -59,21 +59,25 @@ editor* editor_create(){
     self->main_rom = NULL;
     self->current_color = 0;
     {
-        SDL_Color new_color = {0, 0, 0, 255};
-        self->palette[0] = new_color;
+        int index = 0;
+        for(int r = 0; r < 2; r++){
+            for(int g = 0; g < 2; g++){
+                for(int b = 0; b < 2; b++){
+                    SDL_Color new_color = {(r)*255, (g)*255, (b)*255, 255};
+                    self->palette[index] = new_color;
+                    index++;
+                }
+            }
+        }
     }
-    {
-        SDL_Color new_color = {255, 200, 150, 255};
-        self->palette[1] = new_color;
+    for(int i = 0; i < 8; i++){
+        self->palette[i+8].r = self->palette[i].r/2;
+        self->palette[i+8].g = self->palette[i].g/2;
+        self->palette[i+8].b = self->palette[i].b/2;
     }
-    {
-        SDL_Color new_color = {255, 0, 0, 255};
-        self->palette[2] = new_color;
-    }
-    {
-        SDL_Color new_color = {150, 120, 0, 255};
-        self->palette[3] = new_color;
-    }
+    self->palette[8].r = 100;
+    self->palette[8].g = 100;
+    self->palette[8].b = 100;
     editor_loadDefaultConfig(self);
     self->sheet_widget = widget_create(
         WINDOW_HEIGHT/32, 0, WINDOW_HEIGHT, WINDOW_HEIGHT
@@ -82,26 +86,26 @@ editor* editor_create(){
         WINDOW_HEIGHT+WINDOW_HEIGHT/32, 0, WINDOW_WIDTH-WINDOW_HEIGHT-WINDOW_HEIGHT/32, WINDOW_WIDTH-WINDOW_HEIGHT-WINDOW_HEIGHT/32
     );
     self->palette_widget = widget_create(
-        WINDOW_HEIGHT+WINDOW_HEIGHT/32, WINDOW_WIDTH-WINDOW_HEIGHT-WINDOW_HEIGHT/32, WINDOW_HEIGHT/4, WINDOW_HEIGHT/16
+        WINDOW_HEIGHT+WINDOW_HEIGHT/32, WINDOW_WIDTH-WINDOW_HEIGHT-WINDOW_HEIGHT/32, WINDOW_WIDTH-WINDOW_HEIGHT-WINDOW_HEIGHT/32, WINDOW_HEIGHT/16
     );
     self->slider_sheet = widget_create(
         0, 0, WINDOW_HEIGHT/32, WINDOW_HEIGHT
     );
     self->slider_r = widget_create(
         WINDOW_HEIGHT+WINDOW_HEIGHT/3,
-        WINDOW_HEIGHT-WINDOW_HEIGHT/32*6,
+        WINDOW_HEIGHT-WINDOW_HEIGHT/32*6+10,
         (WINDOW_WIDTH-WINDOW_HEIGHT)/2,
         WINDOW_HEIGHT/32
     );
     self->slider_g = widget_create(
         WINDOW_HEIGHT+WINDOW_HEIGHT/3,
-        WINDOW_HEIGHT-WINDOW_HEIGHT/32*6+WINDOW_HEIGHT/16,
+        WINDOW_HEIGHT-WINDOW_HEIGHT/32*6+WINDOW_HEIGHT/16+10,
         (WINDOW_WIDTH-WINDOW_HEIGHT)/2,
         WINDOW_HEIGHT/32
     );
     self->slider_b = widget_create(
         WINDOW_HEIGHT+WINDOW_HEIGHT/3,
-        WINDOW_HEIGHT-WINDOW_HEIGHT/32*6+WINDOW_HEIGHT/8,
+        WINDOW_HEIGHT-WINDOW_HEIGHT/32*6+WINDOW_HEIGHT/8+10,
         (WINDOW_WIDTH-WINDOW_HEIGHT)/2,
         WINDOW_HEIGHT/32
     );
@@ -142,7 +146,7 @@ static void editor_inputMouse(editor* self, int x, int y){
         double new_x = 0;
         widget_getMouseRelativeToWidget(self->palette_widget, x, y, &new_x, NULL);
         // multiply by 4 to get one of the 4 colors available
-        new_x = new_x*4;
+        new_x = new_x*(self->main_rom->num_of_colors);
         self->current_color = new_x;
     }
     if(widget_isMouseInsideWidget(self->slider_r, x, y)){
@@ -165,7 +169,7 @@ static void editor_inputMouse(editor* self, int x, int y){
     if(widget_isMouseInsideWidget(self->slider_sheet, x, y)){
         double new_y = 0;
         widget_getMouseRelativeToWidget(self->slider_sheet, x, y, NULL, &new_y);
-        int max_offset = self->main_rom->size/16/NUM_LINES; // each sprite takes 16 bytes
+        int max_offset = self->main_rom->size/self->main_rom->bytes_per_sprite/NUM_LINES; // each sprite takes 16 bytes
         new_y = max_offset*new_y;
         new_y = (int)new_y;
         // to create a new offset, we get the original size and define a max offset
@@ -182,7 +186,7 @@ static void editor_inputHandleCtrlC(editor* self){
     for(int i = 0; i < 8; i++){
         for(int j = 0; j < 8; j++){
             size_t offset = self->current_sprite_x/8+(self->current_sprite_y/8+self->offset_tiles)*NUM_COLS;
-            str_to_copy[j*8+i] = 48+rom_getPixel(self->main_rom, offset, 7-i, j);
+            str_to_copy[j*8+i] = '0'+rom_getPixel(self->main_rom, offset, 7-i, j);
         }
     }
     SDL_SetClipboardText(str_to_copy);
@@ -248,9 +252,9 @@ void editor_input(editor* self, SDL_Event* event){
             self->offset_tiles+=3;
         }
     }
-    if(self->main_rom != NULL && self->offset_tiles >= self->main_rom->size/(16*NUM_COLS)-4){
+    if(self->main_rom != NULL && self->offset_tiles >= self->main_rom->size/(self->main_rom->bytes_per_sprite*NUM_COLS)-4){
         // we cant pass the max size of offset
-        self->offset_tiles = self->main_rom->size/(16*NUM_COLS)-4;
+        self->offset_tiles = self->main_rom->size/(self->main_rom->bytes_per_sprite*NUM_COLS)-4;
     }
     int x, y;
     if(SDL_GetMouseState(&x, &y)&SDL_BUTTON(SDL_BUTTON_LEFT)){
@@ -315,7 +319,7 @@ static void editor_drawSliders(const editor* self){
         bg.r = 20; bg.g = 20; bg.b = 20;
         fg.r = 255;
         fg.g = 255;
-        double percentage = (double)255*self->offset_tiles/self->main_rom->size*NUM_COLS*NUM_COLS;
+        double percentage = (double)255*self->offset_tiles/self->main_rom->size*self->main_rom->bytes_per_sprite*NUM_COLS;
         widget_renderSlide(self->slider_sheet, (uint8_t)percentage, bg, fg);
     }
 }
@@ -332,8 +336,8 @@ void editor_render(const editor* self){
         SDL_RenderCopy(renderer, sheet_texture, &src, &dst);
     }
     { // draw color palette
-        SDL_Rect rect_color = {self->palette_widget->x, self->palette_widget->y, self->palette_widget->w/4, self->palette_widget->h};
-        for(int i = 0; i < 4; i++){
+        SDL_Rect rect_color = {self->palette_widget->x, self->palette_widget->y, self->palette_widget->w/self->main_rom->num_of_colors, self->palette_widget->h};
+        for(int i = 0; i < self->main_rom->num_of_colors; i++){
             SDL_SetRenderDrawColor(renderer, self->palette[i].r, self->palette[i].g, self->palette[i].b, 255);
             SDL_RenderFillRect(renderer, &rect_color);
             rect_color.x += rect_color.w;

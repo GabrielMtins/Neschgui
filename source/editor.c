@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "util.h"
 
 /*
     Copyright (C) 2020  Gabriel Martins
@@ -22,11 +23,6 @@
     along with Neschgui.  If not, see <https://www.gnu.org/licenses/>.
     Contact: gabrielmartinsthe@gmail.com
 */
-
-#define SPRITE_SURFACE_WIDTH 128
-#define SPRITE_SURFACE_HEIGHT 128
-int NUM_COLS = (SPRITE_SURFACE_WIDTH/8);
-int NUM_LINES = (SPRITE_SURFACE_HEIGHT/8);
 
 static void editor_loadDefaultConfig(editor* self){
     char filename[256] = "";
@@ -114,15 +110,6 @@ editor* editor_create(){
     return self;
 }
 
-static void editor_updateTitle(uint8_t saved){
-    char new_title[256];
-    strcpy(new_title, window_title);
-    if(!saved){
-        strcat(new_title, "*");
-    }
-    SDL_SetWindowTitle(window, new_title);
-}
-
 static void editor_inputMouse(editor* self, int x, int y){
     if(widget_isMouseInsideWidget(self->sheet_widget, x, y)){
         /*
@@ -192,44 +179,23 @@ static void editor_inputMouse(editor* self, int x, int y){
     }
 }
 
-static void editor_inputHandleCtrlC(editor* self){
-    char str_to_copy[65];
-    str_to_copy[64] = '\0';
-    // we copy the colors of the current tile to a string and set as the clipboard
-    for(int i = 0; i < 8; i++){
-        for(int j = 0; j < 8; j++){
-            size_t offset = self->current_sprite_x/8+(self->current_sprite_y/8+self->offset_tiles)*NUM_COLS;
-            str_to_copy[j*8+i] = '0'+rom_getPixel(self->main_rom, offset, 7-i, j);
-        }
-    }
-    SDL_SetClipboardText(str_to_copy);
-}
-
-static void editor_inputHandleCtrlV(editor* self){
-    char str_to_paste[65] = "";
-    strcpy(str_to_paste, SDL_GetClipboardText());
-    for(int i = 0; i < 8; i++){
-        for(int j = 0; j < 8; j++){
-            size_t offset = self->current_sprite_x/8+(self->current_sprite_y/8+self->offset_tiles)*NUM_COLS;
-            if(i == 0 && j == 0){
-                undo_stack_push(&self->main_stack, self->main_rom, offset, 7-i, j, UNDO_TYPE_PUT_PIXEL); // save action
-            }
-            else undo_stack_push(&self->main_stack, self->main_rom, offset, 7-i, j, UNDO_TYPE_PASTE); // save action
-            rom_putPixel(self->main_rom, offset, 7-i, j, str_to_paste[j*8+i]-48);
-        }
-    }
-    editor_updateTitle(0);
-}
-
 void editor_input(editor* self, SDL_Event* event){
     if(event == NULL) return;
     if(event->type == SDL_KEYDOWN){
         switch(event->key.keysym.sym){
+            case SDLK_LEFT:
+            if(SDL_GetModState()&KMOD_SHIFT) editor_swapTiles(self, -1, 0);
+            break;
+            case SDLK_RIGHT:
+            if(SDL_GetModState()&KMOD_SHIFT) editor_swapTiles(self, 1, 0);
+            break;
             case SDLK_DOWN:
-            self->offset_tiles+=16;
+            if(SDL_GetModState()&KMOD_SHIFT) editor_swapTiles(self, 0, 1);
+            else self->offset_tiles+=16;
             break;
             case SDLK_UP:
-            if(self->offset_tiles >= 16) self->offset_tiles-=16;
+            if(SDL_GetModState()&KMOD_SHIFT) editor_swapTiles(self, 0, -1);
+            else if(self->offset_tiles >= 16) self->offset_tiles-=16;
             break;
             case SDLK_s:
             if(SDL_GetModState()&KMOD_CTRL){

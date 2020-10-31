@@ -26,6 +26,11 @@
 #include "widget.h"
 #include "undo.h"
 
+#define SPRITE_SURFACE_WIDTH 128
+#define SPRITE_SURFACE_HEIGHT 128
+#define NUM_COLS (SPRITE_SURFACE_WIDTH/8)
+#define NUM_LINES (SPRITE_SURFACE_HEIGHT/8)
+
 typedef struct{
     rom* main_rom;
     undo_stack main_stack;

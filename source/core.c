@@ -1,6 +1,9 @@
 #include "core.h"
 #include "global.h"
 #include "editor.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 /*
     Copyright (C) 2020  Gabriel Martins
@@ -31,6 +34,7 @@ void core_init(int argc, char** argv){
     }
     SDL_Init(SDL_INIT_VIDEO);
     main_editor = editor_create();
+
     editor_loadRom(main_editor, argv[1]);
     if(main_editor->main_rom == NULL){
         printf("Failed to read rom\n");
@@ -38,6 +42,21 @@ void core_init(int argc, char** argv){
         SDL_Quit();
         exit(-1);
     }
+    char working_directory[256] = "";
+    getcwd(working_directory, 256);
+    if(!strncmp(working_directory, "/home/", 6)){
+        for(size_t i = 6; i < strlen(working_directory); i++){
+            if(working_directory[i] == '/'){
+                // substitute /home/user/ by ~/
+                char new_directory[256] = "~";
+                strcat(new_directory, working_directory+i);
+                strcpy(working_directory, new_directory);
+                break;
+            }
+        }
+    }
+    strcat(working_directory, "/");
+    strcat(window_title, working_directory);
     strcat(window_title, argv[1]);
     window = SDL_CreateWindow(window_title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_RESIZABLE);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);

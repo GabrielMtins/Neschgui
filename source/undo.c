@@ -31,7 +31,12 @@ static uint8_t undo_action_cmp(undo_action a, undo_action b){
 }
 
 void undo_stack_push(undo_stack* stack, rom* self, size_t offset, uint8_t x, uint8_t y, uint8_t type){
-    if(stack->top == MAX_ACTION) stack->top = 0;
+    if(stack->top == MAX_ACTION){
+        for(int i = 0; i < MAX_ACTION-1; i++){
+            stack->stack[i] = stack->stack[i+1];
+        }
+        stack->top--;
+    }
     undo_action new_action = {x, y, rom_getPixel(self, offset, x, y), offset, type};
     if(stack->top > 0){
         if(undo_action_cmp(stack->stack[stack->top-1], new_action)) return;

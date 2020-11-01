@@ -63,10 +63,10 @@ void editor_inputHandleCtrlV(editor* self){
 }
 
 void editor_swapTiles(editor* self, int dir_x, int dir_y){
-    if(self->current_sprite_x == 0 && dir_x < 0) return;
-    if(self->current_sprite_y == 0 && dir_y < 0) return;
-    if(self->current_sprite_x == 7 && dir_x > 0) return;
-    if(self->current_sprite_y == 7 && dir_y > 0) return;
+    if(self->current_sprite_x/8 == 0 && dir_x < 0) return;
+    if(self->current_sprite_y/8 == 0 && dir_y < 0) return;
+    if(self->current_sprite_x/8 == NUM_COLS-1 && dir_x > 0) return;
+    if(self->current_sprite_y/8 == NUM_LINES-1 && dir_y > 0) return;
     size_t offset = self->current_sprite_x/8+(self->current_sprite_y/8+self->offset_tiles)*NUM_COLS;
     size_t offset_swap = self->current_sprite_x/8+dir_x+(self->current_sprite_y/8+self->offset_tiles+dir_y)*NUM_COLS;
     for(int i = 0; i < 8; i++){

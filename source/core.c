@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 
 /*
     Copyright (C) 2020  Gabriel Martins
@@ -34,7 +35,6 @@ void core_init(int argc, char** argv){
     }
     SDL_Init(SDL_INIT_VIDEO);
     main_editor = editor_create();
-
     editor_loadRom(main_editor, argv[1]);
     if(main_editor->main_rom == NULL){
         printf("Failed to read rom\n");

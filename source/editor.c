@@ -227,6 +227,16 @@ void editor_input(editor* self, SDL_Event* event){
                 undo_stack_pop(&self->main_stack, self->main_rom);
             }
             break;
+            case SDLK_r: // handle ctrl + r
+            if(SDL_GetModState()&KMOD_CTRL){
+                editor_rotateTile(self);
+            }
+            break;
+            case SDLK_i: // handle ctrl + i
+            if(SDL_GetModState()&KMOD_CTRL){
+                editor_invertTile(self);
+            }
+            break;
         }
     }
     if(event->type == SDL_MOUSEWHEEL){

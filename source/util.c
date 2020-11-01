@@ -49,13 +49,11 @@ void editor_inputHandleCtrlC(editor* self){
 void editor_inputHandleCtrlV(editor* self){
     char str_to_paste[65] = "";
     strcpy(str_to_paste, SDL_GetClipboardText());
+    size_t offset = self->current_sprite_x/8+(self->current_sprite_y/8+self->offset_tiles)*NUM_COLS;
+    undo_stack_push(&self->main_stack, self->main_rom, offset, 7, 0, UNDO_TYPE_PUT_PIXEL);
     for(int i = 0; i < 8; i++){
         for(int j = 0; j < 8; j++){
-            size_t offset = self->current_sprite_x/8+(self->current_sprite_y/8+self->offset_tiles)*NUM_COLS;
-            if(i == 0 && j == 0){
-                undo_stack_push(&self->main_stack, self->main_rom, offset, 7-i, j, UNDO_TYPE_PUT_PIXEL); // save action
-            }
-            else undo_stack_push(&self->main_stack, self->main_rom, offset, 7-i, j, UNDO_TYPE_PASTE); // save action
+            undo_stack_push(&self->main_stack, self->main_rom, offset, 7-i, j, UNDO_TYPE_PASTE); // save action
             rom_putPixel(self->main_rom, offset, 7-i, j, str_to_paste[j*8+i]-48);
         }
     }
@@ -69,16 +67,12 @@ void editor_swapTiles(editor* self, int dir_x, int dir_y){
     if(self->current_sprite_y/8 == NUM_LINES-1 && dir_y > 0) return;
     size_t offset = self->current_sprite_x/8+(self->current_sprite_y/8+self->offset_tiles)*NUM_COLS;
     size_t offset_swap = self->current_sprite_x/8+dir_x+(self->current_sprite_y/8+self->offset_tiles+dir_y)*NUM_COLS;
+    undo_stack_push(&self->main_stack, self->main_rom, offset, 7, 0, UNDO_TYPE_PUT_PIXEL); // save action
+    undo_stack_push(&self->main_stack, self->main_rom, offset_swap, 7, 0, UNDO_TYPE_PASTE); // save action
     for(int i = 0; i < 8; i++){
         for(int j = 0; j < 8; j++){
-            if(i == 0 && j == 0){
-                undo_stack_push(&self->main_stack, self->main_rom, offset, 7-i, j, UNDO_TYPE_PUT_PIXEL); // save action
-                undo_stack_push(&self->main_stack, self->main_rom, offset_swap, 7-i, j, UNDO_TYPE_PASTE); // save action
-            }
-            else{
-                undo_stack_push(&self->main_stack, self->main_rom, offset, 7-i, j, UNDO_TYPE_PASTE); // save action
-                undo_stack_push(&self->main_stack, self->main_rom, offset_swap, 7-i, j, UNDO_TYPE_PASTE); // save action
-            }
+            undo_stack_push(&self->main_stack, self->main_rom, offset, 7-i, j, UNDO_TYPE_PASTE); // save action
+            undo_stack_push(&self->main_stack, self->main_rom, offset_swap, 7-i, j, UNDO_TYPE_PASTE); // save action
             uint8_t og_pixel = rom_getPixel(self->main_rom, offset, 7-i, j);
             uint8_t swap_pixel = rom_getPixel(self->main_rom, offset_swap, 7-i, j);
             rom_putPixel(self->main_rom, offset, 7-i, j, swap_pixel);
@@ -87,4 +81,38 @@ void editor_swapTiles(editor* self, int dir_x, int dir_y){
     }
     self->current_sprite_x+=dir_x*8;
     self->current_sprite_y+=dir_y*8;
+}
+
+void editor_rotateTile(editor* self){
+    size_t offset = self->current_sprite_x/8+(self->current_sprite_y/8+self->offset_tiles)*NUM_COLS;
+    uint8_t old_tile[8][8] = {};
+    for(int i = 0; i < 8; i++){
+        for(int j = 0; j < 8; j++){
+            old_tile[i][j] = rom_getPixel(self->main_rom, offset, 7-i, j);
+        }
+    }
+    undo_stack_push(&self->main_stack, self->main_rom, offset, 0, 0, UNDO_TYPE_PUT_PIXEL); // save action
+    for(int i = 0; i < 8; i++){
+        for(int j = 0; j < 8; j++){
+            undo_stack_push(&self->main_stack, self->main_rom, offset, j, i, UNDO_TYPE_PASTE); // save action
+            rom_putPixel(self->main_rom, offset, j, i, old_tile[i][j]);
+        }
+    }
+}
+
+void editor_invertTile(editor* self){
+    size_t offset = self->current_sprite_x/8+(self->current_sprite_y/8+self->offset_tiles)*NUM_COLS;
+    uint8_t old_tile[8][8] = {};
+    for(int i = 0; i < 8; i++){
+        for(int j = 0; j < 8; j++){
+            old_tile[i][j] = rom_getPixel(self->main_rom, offset, 7-i, j);
+        }
+    }
+    undo_stack_push(&self->main_stack, self->main_rom, offset, 0, 0, UNDO_TYPE_PUT_PIXEL); // save action
+    for(int i = 0; i < 8; i++){
+        for(int j = 0; j < 8; j++){
+            undo_stack_push(&self->main_stack, self->main_rom, offset, i, j, UNDO_TYPE_PASTE); // save action
+            rom_putPixel(self->main_rom, offset, i, j, old_tile[i][j]);
+        }
+    }
 }

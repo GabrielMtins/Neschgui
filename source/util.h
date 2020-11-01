@@ -35,4 +35,8 @@ void editor_inputHandleCtrlV(editor* self);
 
 void editor_swapTiles(editor* self, int dir_x, int dir_y);
 
+void editor_rotateTile(editor* self);
+
+void editor_invertTile(editor* self);
+
 #endif

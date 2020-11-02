@@ -59,6 +59,18 @@ rom* rom_load(const char* filename){
     return self;
 }
 
+rom* rom_loadEmptyRom(){
+    rom* self = malloc(sizeof(rom));
+    strcpy(self->rom_name, "empty.nes");
+    self->num_of_colors = 4;
+    self->bytes_per_sprite = 16;
+    self->type = NES_ROM;
+    self->size = 40*1024;
+    self->rom_buffer = malloc(self->size);
+    for(int i = 0; i < self->size; i++) self->rom_buffer[i] = 0;
+    return self;
+}
+
 static uint8_t rom_nes_getPixel(const rom* self, size_t offset, size_t x, size_t y){
     /*
         we need to arguments for the color

@@ -39,6 +39,8 @@ typedef struct{
 
 rom* rom_load(const char* filename);
 
+rom* rom_loadEmptyRom();
+
 uint8_t rom_getPixel(const rom* self, size_t offset, size_t x, size_t y);
 
 void rom_putPixel(rom* self, size_t offset, size_t x, size_t y, uint8_t color);

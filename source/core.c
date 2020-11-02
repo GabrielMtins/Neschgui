@@ -29,20 +29,13 @@
 editor* main_editor = NULL;
 
 void core_init(int argc, char** argv){
-    if(argc == 1){
-        printf("No arguments!\n");
-        exit(-1);
-    }
     SDL_Init(SDL_INIT_VIDEO);
     main_editor = editor_create();
-    editor_loadRom(main_editor, argv[1]);
-    if(main_editor->main_rom == NULL){
-        printf("Failed to read rom\n");
-        editor_destroy(main_editor);
-        SDL_Quit();
-        exit(-1);
+    if(argc != 1){
+        editor_loadRom(main_editor, argv[1]);
+        strcat(window_title, argv[1]);
     }
-    strcat(window_title, argv[1]);
+    else editor_loadRom(main_editor, NULL);
     window = SDL_CreateWindow(window_title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_RESIZABLE);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     SDL_RenderSetLogicalSize(renderer, WINDOW_WIDTH, WINDOW_HEIGHT);

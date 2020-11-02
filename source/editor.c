@@ -107,11 +107,13 @@ editor* editor_create(){
         WINDOW_HEIGHT/32
     );
     self->main_stack.top = 0;
+    self->main_rom = NULL;
     return self;
 }
 
 static void editor_inputMouse(editor* self, int x, int y){
     if(widget_isMouseInsideWidget(self->sheet_widget, x, y)){
+        if(self->main_rom == NULL) return;
         /*
             the sheet is composed by NUM_COLS*NUM_LINES of sprites
             to get the pixel of the current sprite, we multiply the
@@ -129,6 +131,7 @@ static void editor_inputMouse(editor* self, int x, int y){
         self->current_sprite_y *= 8;
     }
     if(widget_isMouseInsideWidget(self->draw_widget, x, y)){
+        if(self->main_rom == NULL) return;
         double new_x = 0, new_y = 0;
         widget_getMouseRelativeToWidget(self->draw_widget, x, y, &new_x, &new_y);
         // we get the relative mouse position to the widget and then
@@ -256,6 +259,7 @@ void editor_input(editor* self, SDL_Event* event){
         getMousePositionRelative(&x, &y);
         editor_inputMouse(self, x, y);
     }
+    editor_handleDraggedFile(self, event);
 }
 
 void editor_loadRom(editor* self, const char* filename){
@@ -263,7 +267,9 @@ void editor_loadRom(editor* self, const char* filename){
     if(self->main_rom != NULL){
         editor_freeRom(self);
     }
-    self->main_rom = rom_load(filename);
+
+    if(filename == NULL) self->main_rom = rom_loadEmptyRom();
+    else self->main_rom = rom_load(filename);
 }
 
 void editor_freeRom(editor* self){
@@ -274,6 +280,8 @@ void editor_freeRom(editor* self){
 }
 
 void editor_drawTilesetToSurface(editor* self){
+    if(self == NULL) return;
+    if(self->main_rom == NULL) return;
     for(int i = 0; i < SPRITE_SURFACE_HEIGHT; i++){
         for(int j = 0; j < SPRITE_SURFACE_WIDTH; j++){
             size_t offset = i/8+(j/8+self->offset_tiles)*NUM_COLS;
@@ -320,6 +328,7 @@ static void editor_drawSliders(const editor* self){
 }
 
 void editor_render(const editor* self){
+    if(self == NULL) return;
     SDL_Texture* sheet_texture = SDL_CreateTextureFromSurface(renderer, self->sprite_surface);
     { // draw sheet
         widget_render(self->sheet_widget, sheet_texture);
@@ -331,8 +340,9 @@ void editor_render(const editor* self){
         SDL_RenderCopy(renderer, sheet_texture, &src, &dst);
     }
     { // draw color palette
-        SDL_Rect rect_color = {self->palette_widget->x, self->palette_widget->y, self->palette_widget->w/self->main_rom->num_of_colors, self->palette_widget->h};
-        for(int i = 0; i < self->main_rom->num_of_colors; i++){
+        int number_of_colors = self->main_rom->num_of_colors;
+        SDL_Rect rect_color = {self->palette_widget->x, self->palette_widget->y, self->palette_widget->w/number_of_colors, self->palette_widget->h};
+        for(int i = 0; i < number_of_colors; i++){
             SDL_SetRenderDrawColor(renderer, self->palette[i].r, self->palette[i].g, self->palette[i].b, 255);
             SDL_RenderFillRect(renderer, &rect_color);
             rect_color.x += rect_color.w;

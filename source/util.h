@@ -33,6 +33,8 @@ void editor_inputHandleCtrlC(editor* self);
 
 void editor_inputHandleCtrlV(editor* self);
 
+void editor_handleDraggedFile(editor* self, SDL_Event* event);
+
 void editor_swapTiles(editor* self, int dir_x, int dir_y);
 
 void editor_rotateTile(editor* self);

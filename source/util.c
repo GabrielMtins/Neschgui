@@ -47,8 +47,7 @@ void editor_inputHandleCtrlC(editor* self){
 }
 
 void editor_inputHandleCtrlV(editor* self){
-    char str_to_paste[65] = "";
-    strcpy(str_to_paste, SDL_GetClipboardText());
+    char* str_to_paste = SDL_GetClipboardText();
     size_t offset = self->current_sprite_x/8+(self->current_sprite_y/8+self->offset_tiles)*NUM_COLS;
     undo_stack_push(&self->main_stack, self->main_rom, offset, 7, 0, UNDO_TYPE_PUT_PIXEL);
     for(int i = 0; i < 8; i++){
@@ -57,6 +56,7 @@ void editor_inputHandleCtrlV(editor* self){
             rom_putPixel(self->main_rom, offset, 7-i, j, str_to_paste[j*8+i]-48);
         }
     }
+    free(str_to_paste);
     editor_updateTitle(0);
 }
 

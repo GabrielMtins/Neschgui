@@ -204,12 +204,6 @@ void editor_input(editor* self, SDL_Event* event){
             if(SDL_GetModState()&KMOD_SHIFT) editor_swapTiles(self, 0, -1);
             else if(self->offset_tiles >= 16) self->offset_tiles-=16;
             break;
-            case SDLK_s:
-            if(SDL_GetModState()&KMOD_CTRL){
-                rom_save(self->main_rom);
-                editor_updateTitle(1);
-            }
-            break;
             case SDLK_1:
             self->current_color = 0;
             break;
@@ -221,6 +215,12 @@ void editor_input(editor* self, SDL_Event* event){
             break;
             case SDLK_4:
             self->current_color = 3;
+            break;
+            case SDLK_s:
+            if(SDL_GetModState()&KMOD_CTRL){
+                rom_save(self->main_rom);
+                editor_updateTitle(1);
+            }
             break;
             case SDLK_c:
             if(SDL_GetModState()&KMOD_CTRL) editor_inputHandleCtrlC(self);
@@ -255,7 +255,7 @@ void editor_input(editor* self, SDL_Event* event){
         }
     }
     if(self->main_rom != NULL && self->offset_tiles >= self->main_rom->size/(self->main_rom->bytes_per_sprite*NUM_COLS)-4){
-        // we cant pass the max size of offset
+        // test if we are outside the bounds of the file
         self->offset_tiles = self->main_rom->size/(self->main_rom->bytes_per_sprite*NUM_COLS)-4;
     }
     int x, y;
@@ -306,6 +306,19 @@ static void editor_drawLines(const editor* self){
         SDL_RenderDrawLine(renderer, i*tile_size+self->sheet_widget->x, 0, i*tile_size+self->sheet_widget->x, WINDOW_HEIGHT);
         SDL_RenderDrawLine(renderer, self->sheet_widget->x, i*tile_size, WINDOW_HEIGHT+self->sheet_widget->x, i*tile_size);
     }
+    SDL_SetRenderDrawColor(renderer, 120, 120, 120, 255);
+    {
+        double x = WINDOW_HEIGHT+WINDOW_HEIGHT/32;
+        double y = 0;
+        double offset_pixel = (double)(WINDOW_WIDTH-WINDOW_HEIGHT-WINDOW_HEIGHT/32)/8;
+        double width = (WINDOW_WIDTH-WINDOW_HEIGHT-WINDOW_HEIGHT/32);
+        for(int i = 0; i < 9; i++){
+            SDL_RenderDrawLine(renderer, x, 0, x, width);
+            SDL_RenderDrawLine(renderer, WINDOW_HEIGHT+WINDOW_HEIGHT/32, y, WINDOW_WIDTH, y);
+            x+=offset_pixel;
+            y+=offset_pixel;
+        }
+    }
     SDL_RenderDrawLine(renderer, 0, WINDOW_HEIGHT-1, WINDOW_HEIGHT, WINDOW_HEIGHT-1);
 }
 
@@ -315,16 +328,16 @@ static void editor_drawSliders(const editor* self){
     };
     SDL_Color fg = {
         255, 0, 0, 255
-    };
+    }; // start color is red
     widget_renderSlide(self->slider_r, self->palette[self->current_color].r, bg, fg);
-    fg.r = 0; fg.g = 255;
+    fg.r = 0; fg.g = 255; // change color to green
     widget_renderSlide(self->slider_g, self->palette[self->current_color].g, bg, fg);
-    fg.g = 0; fg.b = 255;
+    fg.g = 0; fg.b = 255; // change color to blue
     widget_renderSlide(self->slider_b, self->palette[self->current_color].b, bg, fg);
     if(self->main_rom != NULL){
         bg.r = 20; bg.g = 20; bg.b = 20;
         fg.r = 255;
-        fg.g = 255;
+        fg.g = 255; // change color to white
         double percentage = (double)255*self->offset_tiles/self->main_rom->size*self->main_rom->bytes_per_sprite*NUM_COLS;
         widget_renderSlide(self->slider_sheet, (uint8_t)percentage, bg, fg);
     }

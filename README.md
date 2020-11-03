@@ -25,7 +25,20 @@ To open a file, type:
 $ neschgui rom_name.nes
 ```
 
-To save a file just press S  
+or drag and drop a file inside   
+
+To save a file just press CTRL+S  
+
+## Shortcuts
+
+```
+CTRL+S - save
+CTRL+R - rotate current sprite
+CTRL+I - invert current sprite
+CTRL+Z - undo
+CTRL+C - copy sprite
+CTRL+V - paste sprite
+```
 
 ## Config file
 

@@ -34,8 +34,8 @@ void editor_updateTitle(uint8_t saved){
 }
 
 void editor_inputHandleCtrlC(editor* self){
-    if(self->main_rom == NULL) return;
-    if(self->main_rom == NULL) return;
+    IF_ERROR(self);
+    IF_ERROR(self->main_rom);
     char str_to_copy[65];
     str_to_copy[64] = '\0';
     // we copy the colors of the current tile to a string and set as the clipboard
@@ -49,8 +49,8 @@ void editor_inputHandleCtrlC(editor* self){
 }
 
 void editor_inputHandleCtrlV(editor* self){
-    if(self->main_rom == NULL) return;
-    if(self->main_rom == NULL) return;
+    IF_ERROR(self);
+    IF_ERROR(self->main_rom);
     char* str_to_paste = SDL_GetClipboardText();
     size_t offset = self->current_sprite_x/8+(self->current_sprite_y/8+self->offset_tiles)*NUM_COLS;
     undo_stack_push(&self->main_stack, self->main_rom, offset, 7, 0, UNDO_TYPE_PUT_PIXEL);
@@ -65,7 +65,7 @@ void editor_inputHandleCtrlV(editor* self){
 }
 
 void editor_handleDraggedFile(editor* self, SDL_Event* event){
-    if(event == NULL) return;
+    IF_ERROR(self);
     if(event->type != SDL_DROPFILE) return;
     char* dropped_file = event->drop.file;
     editor_loadRom(self, dropped_file);
@@ -76,8 +76,8 @@ void editor_handleDraggedFile(editor* self, SDL_Event* event){
 }
 
 void editor_swapTiles(editor* self, int dir_x, int dir_y){
-    if(self->main_rom == NULL) return;
-    if(self->main_rom == NULL) return;
+    IF_ERROR(self);
+    IF_ERROR(self->main_rom);
     if(self->current_sprite_x/8 == 0 && dir_x < 0) return;
     if(self->current_sprite_y/8 == 0 && dir_y < 0) return;
     if(self->current_sprite_x/8 == NUM_COLS-1 && dir_x > 0) return;
@@ -101,8 +101,8 @@ void editor_swapTiles(editor* self, int dir_x, int dir_y){
 }
 
 void editor_rotateTile(editor* self){
-    if(self->main_rom == NULL) return;
-    if(self->main_rom == NULL) return;
+    IF_ERROR(self);
+    IF_ERROR(self->main_rom);
     size_t offset = self->current_sprite_x/8+(self->current_sprite_y/8+self->offset_tiles)*NUM_COLS;
     uint8_t old_tile[8][8] = {};
     for(int i = 0; i < 8; i++){
@@ -120,8 +120,8 @@ void editor_rotateTile(editor* self){
 }
 
 void editor_invertTile(editor* self){
-    if(self->main_rom == NULL) return;
-    if(self->main_rom == NULL) return;
+    IF_ERROR(self);
+    IF_ERROR(self->main_rom);
     size_t offset = self->current_sprite_x/8+(self->current_sprite_y/8+self->offset_tiles)*NUM_COLS;
     uint8_t old_tile[8][8] = {};
     for(int i = 0; i < 8; i++){

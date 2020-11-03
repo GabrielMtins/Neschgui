@@ -29,6 +29,5 @@ extern char window_title[256];
 
 #define WINDOW_WIDTH 1024
 #define WINDOW_HEIGHT 576
-#define TEXT_SIZE 24
 
 #endif

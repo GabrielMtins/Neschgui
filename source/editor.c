@@ -24,6 +24,7 @@
     Contact: gabrielmartinsthe@gmail.com
 */
 
+#ifndef __MINGW32__
 static void editor_loadDefaultConfig(editor* self){
     char filename[256] = "";
     strcpy(filename, getenv("HOME"));
@@ -48,6 +49,7 @@ static void editor_loadDefaultConfig(editor* self){
     }
     fclose(file);
 }
+#endif
 
 editor* editor_create(){
     editor* self = malloc(sizeof(editor));
@@ -75,7 +77,9 @@ editor* editor_create(){
     self->palette[8].r = 100;
     self->palette[8].g = 100;
     self->palette[8].b = 100;
-    editor_loadDefaultConfig(self);
+    #ifndef __MINGW32__
+        editor_loadDefaultConfig(self);
+    #endif
     self->sheet_widget = widget_create(
         WINDOW_HEIGHT/32, 0, WINDOW_HEIGHT, WINDOW_HEIGHT
     );
@@ -267,7 +271,6 @@ void editor_loadRom(editor* self, const char* filename){
     if(self->main_rom != NULL){
         editor_freeRom(self);
     }
-
     if(filename == NULL) self->main_rom = rom_loadEmptyRom();
     else self->main_rom = rom_load(filename);
 }

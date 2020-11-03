@@ -207,37 +207,30 @@ static void editor_arrowKeysInput(editor* self, SDL_Event* event){
     }
 }
 
-static void editor_keysInput(editor* self, SDL_Event* event){
+static void editor_keysCtrlInput(editor* self, SDL_Event* event){
     IF_ERROR(self);
     IF_ERROR(event);
+    if(!(SDL_GetModState()&KMOD_CTRL)) return;
     switch(event->key.keysym.sym){
         case SDLK_s:
-        if(SDL_GetModState()&KMOD_CTRL){
-            rom_save(self->main_rom);
-            editor_updateTitle(1);
-        }
+        rom_save(self->main_rom);
+        editor_updateTitle(1);
         break;
         case SDLK_c:
-        if(SDL_GetModState()&KMOD_CTRL) editor_inputHandleCtrlC(self);
+        editor_inputHandleCtrlC(self);
         break;
         case SDLK_v:
-        if(SDL_GetModState()&KMOD_CTRL) editor_inputHandleCtrlV(self);
+        editor_inputHandleCtrlV(self);
         break;
         case SDLK_z: // handle ctrl + z
-        if(SDL_GetModState()&KMOD_CTRL){
-            if(self->main_stack.top > 0) editor_updateTitle(0);
-            undo_stack_pop(&self->main_stack, self->main_rom);
-        }
+        if(self->main_stack.top > 0) editor_updateTitle(0);
+        undo_stack_pop(&self->main_stack, self->main_rom);
         break;
         case SDLK_r: // handle ctrl + r
-        if(SDL_GetModState()&KMOD_CTRL){
-            editor_rotateTile(self);
-        }
+        editor_rotateTile(self);
         break;
         case SDLK_i: // handle ctrl + i
-        if(SDL_GetModState()&KMOD_CTRL){
-            editor_invertTile(self);
-        }
+        editor_invertTile(self);
         break;
     }
 }
@@ -266,7 +259,7 @@ void editor_input(editor* self, SDL_Event* event){
     IF_ERROR(event);
     if(event->type == SDL_KEYDOWN){
         editor_arrowKeysInput(self, event);
-        editor_keysInput(self, event);
+        editor_keysCtrlInput(self, event);
         editor_colorInput(self, event);
     }
     if(event->type == SDL_MOUSEWHEEL){

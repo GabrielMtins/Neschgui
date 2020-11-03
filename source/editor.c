@@ -186,65 +186,88 @@ static void editor_inputMouse(editor* self, int x, int y){
     }
 }
 
-void editor_input(editor* self, SDL_Event* event){
-    if(event == NULL) return;
-    if(event->type == SDL_KEYDOWN){
-        switch(event->key.keysym.sym){
-            case SDLK_LEFT:
-            if(SDL_GetModState()&KMOD_SHIFT) editor_swapTiles(self, -1, 0);
-            break;
-            case SDLK_RIGHT:
-            if(SDL_GetModState()&KMOD_SHIFT) editor_swapTiles(self, 1, 0);
-            break;
-            case SDLK_DOWN:
-            if(SDL_GetModState()&KMOD_SHIFT) editor_swapTiles(self, 0, 1);
-            else self->offset_tiles+=16;
-            break;
-            case SDLK_UP:
-            if(SDL_GetModState()&KMOD_SHIFT) editor_swapTiles(self, 0, -1);
-            else if(self->offset_tiles >= 16) self->offset_tiles-=16;
-            break;
-            case SDLK_1:
-            self->current_color = 0;
-            break;
-            case SDLK_2:
-            self->current_color = 1;
-            break;
-            case SDLK_3:
-            self->current_color = 2;
-            break;
-            case SDLK_4:
-            self->current_color = 3;
-            break;
-            case SDLK_s:
-            if(SDL_GetModState()&KMOD_CTRL){
-                rom_save(self->main_rom);
-                editor_updateTitle(1);
-            }
-            break;
-            case SDLK_c:
-            if(SDL_GetModState()&KMOD_CTRL) editor_inputHandleCtrlC(self);
-            break;
-            case SDLK_v:
-            if(SDL_GetModState()&KMOD_CTRL) editor_inputHandleCtrlV(self);
-            break;
-            case SDLK_z: // handle ctrl + z
-            if(SDL_GetModState()&KMOD_CTRL){
-                if(self->main_stack.top > 0) editor_updateTitle(0);
-                undo_stack_pop(&self->main_stack, self->main_rom);
-            }
-            break;
-            case SDLK_r: // handle ctrl + r
-            if(SDL_GetModState()&KMOD_CTRL){
-                editor_rotateTile(self);
-            }
-            break;
-            case SDLK_i: // handle ctrl + i
-            if(SDL_GetModState()&KMOD_CTRL){
-                editor_invertTile(self);
-            }
-            break;
+static void editor_arrowKeysInput(editor* self, SDL_Event* event){
+    IF_ERROR(self);
+    IF_ERROR(event);
+    switch(event->key.keysym.sym){
+        case SDLK_LEFT:
+        if(SDL_GetModState()&KMOD_SHIFT) editor_swapTiles(self, -1, 0);
+        break;
+        case SDLK_RIGHT:
+        if(SDL_GetModState()&KMOD_SHIFT) editor_swapTiles(self, 1, 0);
+        break;
+        case SDLK_DOWN:
+        if(SDL_GetModState()&KMOD_SHIFT) editor_swapTiles(self, 0, 1);
+        else self->offset_tiles+=16;
+        break;
+        case SDLK_UP:
+        if(SDL_GetModState()&KMOD_SHIFT) editor_swapTiles(self, 0, -1);
+        else if(self->offset_tiles >= 16) self->offset_tiles-=16;
+        break;
+    }
+}
+
+static void editor_keysInput(editor* self, SDL_Event* event){
+    IF_ERROR(self);
+    IF_ERROR(event);
+    switch(event->key.keysym.sym){
+        case SDLK_s:
+        if(SDL_GetModState()&KMOD_CTRL){
+            rom_save(self->main_rom);
+            editor_updateTitle(1);
         }
+        break;
+        case SDLK_c:
+        if(SDL_GetModState()&KMOD_CTRL) editor_inputHandleCtrlC(self);
+        break;
+        case SDLK_v:
+        if(SDL_GetModState()&KMOD_CTRL) editor_inputHandleCtrlV(self);
+        break;
+        case SDLK_z: // handle ctrl + z
+        if(SDL_GetModState()&KMOD_CTRL){
+            if(self->main_stack.top > 0) editor_updateTitle(0);
+            undo_stack_pop(&self->main_stack, self->main_rom);
+        }
+        break;
+        case SDLK_r: // handle ctrl + r
+        if(SDL_GetModState()&KMOD_CTRL){
+            editor_rotateTile(self);
+        }
+        break;
+        case SDLK_i: // handle ctrl + i
+        if(SDL_GetModState()&KMOD_CTRL){
+            editor_invertTile(self);
+        }
+        break;
+    }
+}
+
+static void editor_colorInput(editor* self, SDL_Event* event){
+    IF_ERROR(self);
+    IF_ERROR(event);
+    switch(event->key.keysym.sym){
+        case SDLK_1:
+        self->current_color = 0;
+        break;
+        case SDLK_2:
+        self->current_color = 1;
+        break;
+        case SDLK_3:
+        self->current_color = 2;
+        break;
+        case SDLK_4:
+        self->current_color = 3;
+        break;
+    }
+}
+
+void editor_input(editor* self, SDL_Event* event){
+    IF_ERROR(self);
+    IF_ERROR(event);
+    if(event->type == SDL_KEYDOWN){
+        editor_arrowKeysInput(self, event);
+        editor_keysInput(self, event);
+        editor_colorInput(self, event);
     }
     if(event->type == SDL_MOUSEWHEEL){
         if(event->wheel.y > 0){
@@ -267,7 +290,7 @@ void editor_input(editor* self, SDL_Event* event){
 }
 
 void editor_loadRom(editor* self, const char* filename){
-    if(self == NULL) return;
+    IF_ERROR(self);
     if(self->main_rom != NULL){
         editor_freeRom(self);
     }
@@ -276,15 +299,15 @@ void editor_loadRom(editor* self, const char* filename){
 }
 
 void editor_freeRom(editor* self){
-    if(self == NULL) return;
-    if(self->main_rom == NULL) return;
+    IF_ERROR(self);
+    IF_ERROR(self->main_rom);
     rom_destroy(self->main_rom);
     self->main_rom = NULL;
 }
 
 void editor_drawTilesetToSurface(editor* self){
-    if(self == NULL) return;
-    if(self->main_rom == NULL) return;
+    IF_ERROR(self);
+    IF_ERROR(self->main_rom);
     for(int i = 0; i < SPRITE_SURFACE_HEIGHT; i++){
         for(int j = 0; j < SPRITE_SURFACE_WIDTH; j++){
             size_t offset = i/8+(j/8+self->offset_tiles)*NUM_COLS;
@@ -300,6 +323,7 @@ void editor_drawTilesetToSurface(editor* self){
 }
 
 static void editor_drawLines(const editor* self){
+    IF_ERROR(self);
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     for(int i = 0; i < NUM_COLS+1; i++){ // these are the lines that divide the sprite sheet
         int tile_size = WINDOW_HEIGHT/NUM_COLS;
@@ -323,6 +347,7 @@ static void editor_drawLines(const editor* self){
 }
 
 static void editor_drawSliders(const editor* self){
+    IF_ERROR(self);
     SDL_Color bg = {
         0, 0, 0, 255
     };
@@ -344,7 +369,7 @@ static void editor_drawSliders(const editor* self){
 }
 
 void editor_render(const editor* self){
-    if(self == NULL) return;
+    IF_ERROR(self);
     SDL_Texture* sheet_texture = SDL_CreateTextureFromSurface(renderer, self->sprite_surface);
     { // draw sheet
         widget_render(self->sheet_widget, sheet_texture);
@@ -370,6 +395,7 @@ void editor_render(const editor* self){
 }
 
 void editor_destroy(editor* self){
+    IF_ERROR(self);
     widget_destroy(self->draw_widget);
     widget_destroy(self->sheet_widget);
     widget_destroy(self->slider_r);

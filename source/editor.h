@@ -30,6 +30,7 @@
 #define SPRITE_SURFACE_HEIGHT 128
 #define NUM_COLS (SPRITE_SURFACE_WIDTH/8)
 #define NUM_LINES (SPRITE_SURFACE_HEIGHT/8)
+#define IF_ERROR(self) if(self == NULL) return
 
 typedef struct{
     rom* main_rom;

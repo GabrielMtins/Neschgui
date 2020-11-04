@@ -23,15 +23,24 @@ CCFLAGS := -Wall -Wextra -O2
 
 LIBFLAGS := -lSDL2
 
-SOURCE_DIRECTORY := source
+SRC_DIR := source
 
-SOURCE := $(wildcard $(SOURCE_DIRECTORY)/*.c)
+BUILD_DIR := ./build
 
-$(EXEC): $(SOURCE)
-	$(CC) $(SOURCE) $(CCFLAGS) $(LIBFLAGS) -o $(EXEC)
+SRC := $(wildcard $(SRC_DIR)/*.c)
+OBJECTS := $(addprefix $(BUILD_DIR)/, $(SRC))
+OBJECTS := $(addsuffix .o, $(OBJECTS))
+
+$(BUILD_DIR)/%.c.o: %.c
+	mkdir -p $(BUILD_DIR)/$(SRC_DIR)
+	$(CC) $(CCFLAGS) -c $< -o $@ $(CCFLAGS)
+
+$(EXEC): $(OBJECTS)
+	$(CC) $(OBJECTS) $(CCFLAGS) $(LIBFLAGS) -o $(EXEC)
 
 install:
 	cp neschgui /usr/bin/neschgui
 
 clean:
+	rm -r build
 	rm neschgui

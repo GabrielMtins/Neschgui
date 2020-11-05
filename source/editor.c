@@ -235,7 +235,7 @@ static void editor_keysCtrlInput(editor* self, SDL_Event* event){
     }
 }
 
-static void editor_colorInput(editor* self, SDL_Event* event){
+static void editor_keysInput(editor* self, SDL_Event* event){
     IF_ERROR(self);
     IF_ERROR(event);
     switch(event->key.keysym.sym){
@@ -251,6 +251,9 @@ static void editor_colorInput(editor* self, SDL_Event* event){
         case SDLK_4:
         self->current_color = 3;
         break;
+        case SDLK_DELETE:
+        editor_deleteTile(self);
+        break;
     }
 }
 
@@ -260,7 +263,7 @@ void editor_input(editor* self, SDL_Event* event){
     if(event->type == SDL_KEYDOWN){
         editor_arrowKeysInput(self, event);
         editor_keysCtrlInput(self, event);
-        editor_colorInput(self, event);
+        editor_keysInput(self, event);
     }
     if(event->type == SDL_MOUSEWHEEL){
         if(event->wheel.y > 0){

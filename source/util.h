@@ -41,4 +41,6 @@ void editor_rotateTile(editor* self);
 
 void editor_invertTile(editor* self);
 
+void editor_deleteTile(editor* self);
+
 #endif

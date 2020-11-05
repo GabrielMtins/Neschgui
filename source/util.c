@@ -137,3 +137,14 @@ void editor_invertTile(editor* self){
         }
     }
 }
+
+void editor_deleteTile(editor* self){
+    IF_ERROR(self);
+    IF_ERROR(self->main_rom);
+    for(int i = 0; i < 8; i++){
+        for(int j = 0; j < 8; j++){
+            size_t offset = self->current_sprite_x/8+(self->current_sprite_y/8+self->offset_tiles)*NUM_COLS;
+            rom_putPixel(self->main_rom, offset, i, j, 0);
+        }
+    }
+}

@@ -1,5 +1,8 @@
 # Neschgui
 
+Warning: this program will not be maintaned anymore.   
+If you want to edit nes roms on linux, please use neschgui-java (check out on my github account)
+
 A program to edit nes/gb character rom on linux  
 
 To install just type:
